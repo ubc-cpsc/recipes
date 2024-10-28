@@ -16,10 +16,14 @@ require 'recipes/drupal8.php';
 
 ## Recipes
 
-| Recipe     | Docs
-| ------     | ----
-| cachetool  | [read](docs/cachetool.md)
-
+| Recipe    | Docs                      |
+|-----------|---------------------------|
+| base      |  |
+| cachetool | [read](docs/cachetool.md) |
+| drupal    | |
+| drupal7   |  |
+| drupal8   |  |
+| laravel   |  |
 
 ## Contributing
 
