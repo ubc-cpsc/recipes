@@ -42,4 +42,3 @@ task('drush:config:backup', function() {
     writeln('Backup saved to ' . $destination);
 });
 before('deploy:drush', 'drush:config:backup');
-

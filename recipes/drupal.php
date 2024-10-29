@@ -18,7 +18,6 @@ set('shared_files', [
 
 desc('Execute database updates');
 task('deploy:drush', function () {
-  // Run updb before config import to catch up schema.
   invoke('drush:updatedb');
 })->once();
 
@@ -44,38 +43,35 @@ task('drupal:settings', function () {
  * Helper tasks for drush.
  */
 desc('Run database updates');
-task('drush:updatedb', drush('updb -y', ['skipIfNoEnv', 'showOutput']))->once();
+task('drush:updatedb', drush('updb -y', ['showOutput']))->once();
 
 desc('Import latest config');
-task('drush:config:import', drush('config:import', ['skipIfNoEnv', 'showOutput']))->once();
+task('drush:config:import', drush('config:import', ['showOutput']))->once();
 
 desc('Deploy latest db updates and config');
-task('drush:deploy', drush('deploy', ['skipIfNoEnv', 'showOutput', 'askInstallIfEmptyDb']))->once();
+task('drush:deploy', drush('deploy', ['showOutput', 'askInstallIfEmptyDb']))->once();
 
 desc('Install Drupal using existing config');
-task('drush2:site:install', drush('site:install --existing-config', ['skipIfNoEnv', 'showOutput']))->once();
+task('drush:site:install', drush('site:install --existing-config', ['showOutput']))->once();
 
 /**
  * Run drush commands.
  *
  * Supported options:
- * - 'skipIfNoEnv': Skip and warn the user if `.env` file is non existing or empty.
- * - 'failIfNoEnv': Fail the command if `.env` file is non existing or empty.
- * - 'runInCurrent': Run the drush command in the current directory.
- * - 'showOutput': Show the output of the command if given.
+ *  - 'runInCurrent': Run the drush command in the current directory.
+ *  - 'askInstallIfEmptyDb': Run drush:site:install if the database is empty.
+ *  - 'showOutput': Show the output of the command if given.
  *
  * @param string $command The drush command (with cli options if any).
  * @param array $options The options that define the behaviour of the command.
+ *
  * @return callable A function that can be used as a task.
  */
 function drush($command, $options = [])
 {
     return function() use ($command, $options) {
-        if (in_array('failIfNoEnv', $options) && ! test('[ -s {{release_or_current_path}}/.env ]')) {
-            throw new \Exception('Your .env file is empty! Cannot proceed.');
-        }
-
-        if (in_array('skipIfNoEnv', $options) && ! test('[ -s {{release_or_current_path}}/.env ]')) {
+        // Skip when there aren't database connection variables.
+        if (! test('[ -s {{release_or_current_path}}/.env ]')) {
             writeln("<fg=yellow;options=bold;>Warning: </><fg=yellow;>Your .env file is empty! Skipping...</>");
             return;
         }
@@ -93,7 +89,7 @@ function drush($command, $options = [])
         // Check if the database is empty and if so, ask to install from existing config.
         if (in_array('askInstallIfEmptyDb', $options) && test('[[ -z "$(./vendor/bin/drush sql:query \'SHOW TABLES\')" ]]')) {
             if (askConfirmation('You have an empty database, would you like to install drupal with existing config?')) {
-                invoke('drush2:site:install');
+                invoke('drush:site:install');
                 return;
             }
         }
