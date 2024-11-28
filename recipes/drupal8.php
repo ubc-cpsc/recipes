@@ -30,15 +30,16 @@ task('drush:config:backup', function() {
     }
 
     // Skip when there are no tables in the database.
-    if (test('[[ -z "$(./vendor/bin/drush sql:query \'SHOW TABLES\')" ]]')) {
+    if (test('[[ -z "$({{release_or_current_path}}/vendor/bin/drush sql:query \'SHOW TABLES\')" ]]')) {
         writeln("<fg=yellow;options=bold;>Warning: </><fg=yellow;>Your database is empty! Skipping...</>");
         return;
     }
 
     $destination = has('previous_release') ? '{{previous_release}}' : '{{release_path}}';
     run("mkdir -p $destination/config/backup");
+
     cd('{{release_or_current_path}}');
-    run("./vendor/bin/drush -y config:export --destination=$destination");
+    run("{{release_or_current_path}}/vendor/bin/drush -y config:export --destination=$destination");
     writeln('Backup saved to ' . $destination);
 });
 before('deploy:drush', 'drush:config:backup');
